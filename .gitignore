@@ -1,0 +1,42 @@
+# Virtual environment
+venv/
+.env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pth
+*.egg
+*.egg-info/
+
+# Package installation artifacts
+dist/
+build/
+*.whl
+pip-wheel-metadata/
+*.cfg
+pip-*.txt
+
+# Testing and caching
+.pytest_cache/
+.coverage
+*.cache
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Dataset and model files
+*.pkl
+*.h5
+*.pt
+glove.6B.100d.txt
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
