@@ -23,19 +23,20 @@ def build_model(input_dim: int) -> tf.keras.Model:
     model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
     return model
 
-def train_model(model: tf.keras.Model, X: np.ndarray, y: np.ndarray, epochs: int = 10) -> tf.keras.Model:
-    """Trains the model with early stopping.
+def train_model(model, X, y, epochs=20):
+    """Trains the model with class weighting for imbalance.
     Args:
-        model (tf.keras.Model): Model to train.
-        X (np.ndarray): Input features.
-        y (np.ndarray): Labels (continuous or binary).
-        epochs (int): Number of epochs (default: 10).
+        model: Keras model.
+        X (np.ndarray): Input embeddings.
+        y (np.ndarray): Labels.
+        epochs (int): Number of epochs.
     Returns:
-        tf.keras.Model: Trained model.
+        model: Trained model.
     """
-    y_binary = (y > 0.5).astype(int)
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True)
-    model.fit(X, y_binary, epochs=epochs, batch_size=32, validation_split=0.2, callbacks=[early_stopping], verbose=1)
+    from sklearn.utils.class_weight import compute_class_weight
+    class_weights = compute_class_weight('balanced', classes=np.unique(y), y=y)
+    class_weight_dict = dict(enumerate(class_weights))
+    history = model.fit(X, y, epochs=epochs, validation_split=0.2, class_weight=class_weight_dict, verbose=1)
     return model
 
 def evaluate_model(model: tf.keras.Model, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, float]:

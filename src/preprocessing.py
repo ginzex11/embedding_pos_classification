@@ -3,26 +3,91 @@ Text preprocessing module for sentiment classification with POS tagging.
 Author: Alex Ginzburg
 Date: June 17, 2025
 """
+import logging
 import spacy
 from typing import List, Tuple
 from collections import Counter
 from datasets import load_dataset
+import pandas as pd
+import ast  # For safely evaluating string lists
 
 nlp = spacy.load("en_core_web_sm")
 
-def load_data(dataset_name="sst"):
+def convert_engagement(value: str) -> int:
+    """Converts shorthand engagement values (e.g., '1K', '2M') to integers.
+    Args:
+        value (str): Engagement value as string.
+    Returns:
+        int: Converted integer value.
+    """
+    if not isinstance(value, str):
+        return 0
+    value = value.replace(',', '').upper()
+    if value.endswith('K'):
+        return int(float(value.replace('K', '')) * 1000)
+    elif value.endswith('M'):
+        return int(float(value.replace('M', '')) * 1000000)
+    elif value.isdigit():
+        return int(value)
+    return 0
+
+def parse_list_string(s: str) -> List:
+    """Parses a string representation of a list (e.g., '[]', '[1, 2]') into a list.
+    Args:
+        s (str): String to parse.
+    Returns:
+        List: Parsed list or empty list if invalid.
+    """
+    if not isinstance(s, str) or s.strip() == '[]':
+        return []
+    try:
+        return ast.literal_eval(s)
+    except (ValueError, SyntaxError):
+        return []
+
+def load_data(dataset_name="sst", limit=None):
     """Loads dataset based on name.
     Args:
-        dataset_name (str): Dataset to load ("sst" or "yelp").
+        dataset_name (str): Dataset to load ("sst" or "yelp" or "tweets").
+        limit (int): Optional limit on dataset size.
     Returns:
         tuple: (texts, labels)
     """
+    data = None
     if dataset_name == "sst":
         dataset = load_dataset("sst", split="train")
-        return dataset["sentence"], dataset["label"]
+        data = dataset["sentence"], dataset["label"]
     elif dataset_name == "yelp":
         dataset = load_dataset("yelp_polarity", split="train")
-        return dataset["text"], [1 if label == 1 else 0 for label in dataset["label"]]
+        data = dataset["text"], [1 if label == 1 else 0 for label in dataset["label"]]
+    if limit and data:
+        data = (data[0][:limit], data[1][:limit])
+    if dataset_name == "tweets":
+        df = pd.read_csv(r"E:\Afeka\nlp\final_project\embedding_pos_classification\data\tweets_1-1404.csv")
+        if limit:
+            df = df.head(limit)
+        df = df.dropna(subset=["Content"])
+        for col in ["Likes", "Retweets", "Comments"]:
+            df[col] = df[col].apply(convert_engagement)
+        for col in ["Tags", "Mentions", "Emojis"]:
+            df[col] = df[col].apply(parse_list_string)
+        def get_sentiment(text):
+            if not isinstance(text, str):
+                return 0
+            text = text.lower()
+            positive_words = {"good", "great", "win", "peace", "happy", "success", "love", "amazing", "best", "joy"}
+            negative_words = {"bad", "hell", "fail", "dead", "war", "hate", "worst", "tragedy", "loss", "sad"}
+            if any(word in text for word in positive_words):
+                return 1
+            elif any(word in text for word in negative_words):
+                return 0
+            return 0  # Default to negative if no strong signal
+        labels = [get_sentiment(c) for c in df["Content"]]
+        logging.info(f"Label distribution: Positive={sum(labels)}, Negative={len(labels) - sum(labels)}")
+        data = (df["Content"].tolist(), labels)
+    if data is None:
+        raise ValueError(f"Unsupported dataset: {dataset_name}")
+    return data
 
 def preprocess(text: str) -> Tuple[List[str], List[str], List[str]]:
     """Tokenizes, lemmatizes, and POS-tags text using spaCy.
@@ -66,7 +131,6 @@ def analyze_pos_error(text: str) -> Tuple[str, str, str]:
     if not text.strip():
         return "", "", "Empty input text."
     tokens, _, pos_tags = preprocess(text)
-    # Check for common errors: "good" or "fast" mis-tagged
     for token, tag in zip(tokens, pos_tags):
         if token == "good" and tag == "ADV":
             return token, tag, "Mis-tagged as ADV instead of ADJ due to ambiguous context (e.g., 'feels good')."
@@ -79,7 +143,9 @@ def test_load_data():
     texts, labels = load_data()
     assert len(texts) > 0, "No texts loaded"
     assert len(labels) == len(texts), "Labels and texts length mismatch"
-    assert all(isinstance(l, float) for l in labels), "Labels not float"
+    assert all(isinstance(l, int) for l in labels), "Labels not integer"
+    texts_limited, labels_limited = load_data(limit=10)
+    assert len(texts_limited) == 10, "Limit not applied"
 
 def test_preprocess():
     tokens, lemmas, pos_tags = preprocess("This is a good test!")
