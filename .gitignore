@@ -39,4 +39,4 @@ Thumbs.db
 
 # IDE files
 .vscode/
-.idea/
+.idea/resources/glove.*.txt
