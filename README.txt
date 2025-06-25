@@ -7,7 +7,7 @@ Github: https://github.com/ginzex11/embedding_pos_classification
 - Plots included in plots + backup folder.
 - Word/Pdf file of the report included in the project folder named - final_report_208839613_project_4
 - tests/ folder was mostly for internal use and testing while wokring on the project, althought all the tests are passing no matter the data yelp or tweets or tts.
-
+-- glove.6B.**d.txt files will be removed from git because of size limitation--
 
 small summary:
 
