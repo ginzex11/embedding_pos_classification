@@ -1,7 +1,6 @@
 """
 Text preprocessing module for sentiment classification with POS tagging.
 Author: Alex Ginzburg
-Date: June 17, 2025
 """
 import logging
 import spacy
@@ -9,7 +8,7 @@ from typing import List, Tuple
 from collections import Counter
 from datasets import load_dataset
 import pandas as pd
-import ast  # For safely evaluating string lists
+import ast 
 
 nlp = spacy.load("en_core_web_sm")
 

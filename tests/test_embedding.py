@@ -1,7 +1,6 @@
 """
 Test script for embedding.py with SST dataset.
 Author: Alex Ginzburg
-Date: June 17, 2025
 """
 import sys
 import os

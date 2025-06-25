@@ -1,7 +1,6 @@
 """
 Embedding module for Project 4: Word embeddings with POS integration.
 Author: Alex Ginzburg
-Date: June 17, 2025
 """
 import numpy as np
 from gensim.models import KeyedVectors

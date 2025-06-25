@@ -1,7 +1,6 @@
 """
 Neural network classifier for sentiment analysis with word and POS embeddings.
 Author: Alex Ginzburg
-Date: June 17, 2025 (Updated)
 """
 import tensorflow as tf
 from sklearn.metrics import accuracy_score, f1_score, precision_score
