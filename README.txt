@@ -1,5 +1,4 @@
 # Sentiment Classification with Word and POS Embeddings
-ID: 208839613
 Name: Alexander Ginzburg
 Github: https://github.com/ginzex11/embedding_pos_classification
 
